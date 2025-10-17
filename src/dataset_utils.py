@@ -1,6 +1,5 @@
 import kaggle
 import keras
-import pandas as pd
 import tensorflow as tf
 from pathlib import Path
 
@@ -14,6 +13,13 @@ FER_2013_TO_UNIFIED: tf.Tensor = tf.constant([0, 1, 2, 3, 4, 5, 6])
 # 0 - angry, 1 - disgust, 2 - fear, 3 - happy, 4 - neutral, 5 - sad, 6 - surprise 
 
 def _download_dataset(dataset_url: str) -> Path:
+    """
+    Download and extract a dataset from Kaggle if not already present.
+    Args:
+        dataset_url (str): Kaggle dataset identifier (e.g., 'username/dataset-name').
+    Returns:
+        Path: Path to the downloaded dataset directory.
+    """
     dataset_name = dataset_url.split("/")[1]
     dataset_path = DATA_ROOT / dataset_name
     DATA_ROOT.mkdir(exist_ok=True)
@@ -31,9 +37,12 @@ def _download_dataset(dataset_url: str) -> Path:
 
 def _standardize_labels(dataset: tf.data.Dataset, mapping: tf.Tensor) -> tf.data.Dataset:
     """
-    Remap dataset labels using a mapping tensor.
-    `mapping` is a 1-D tensor where mapping[old_index] == new_index.
-    Works with batched and unbatched label tensors.
+    Remap dataset labels using a mapping tensor to a unified label order.
+    Args:
+        dataset (tf.data.Dataset): Input dataset with (image, label) pairs.
+        mapping (tf.Tensor): 1-D tensor where mapping[old_index] == new_index.
+    Returns:
+        tf.data.Dataset: Dataset with remapped labels.
     """
     def _map_fn(images, labels):
         labels = tf.cast(labels, tf.int64)
@@ -44,6 +53,10 @@ def _standardize_labels(dataset: tf.data.Dataset, mapping: tf.Tensor) -> tf.data
 def _normalize_images(dataset: tf.data.Dataset) -> tf.data.Dataset:
     """
     Normalize image pixel values to [0, 1].
+    Args:
+        dataset (tf.data.Dataset): Input dataset with (image, label) pairs.
+    Returns:
+        tf.data.Dataset: Dataset with normalized images.
     """
     def _norm_fn(images, labels):
         images = tf.cast(images, tf.float32) / 255.0
@@ -58,15 +71,15 @@ def get_raf_db_dataset(
     normalize=True
 ):
     """
-    Get RAF-DB dataset split into train, validation, and test sets.
-    
+    Load the RAF-DB dataset, split into train, validation, and test sets, and optionally standardize labels and normalize images.
     Args:
-        image_size: Tuple of (height, width)
-        batch_size: Number of images per batch
-        validation_split: Fraction of training data to use for validation
-    
+        image_size (tuple): Image size (height, width) for resizing.
+        batch_size (int): Number of images per batch.
+        validation_split (float): Fraction of training data to use for validation.
+        standardize_labels (bool): Whether to remap labels to unified order.
+        normalize (bool): Whether to normalize pixel values to [0, 1].
     Returns:
-        Tuple of (train_ds, val_ds, test_ds)
+        Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]: (train_ds, val_ds, test_ds)
     """
     raf_db_path = _download_dataset(RAF_DB_DATASET)
     test_path = raf_db_path/"DATASET/test"
@@ -111,15 +124,15 @@ def get_fer_2013_dataset(
     normalize=True
 ):
     """
-    Get FER-2013 dataset split into train, validation, and test sets.
-    
+    Load the FER-2013 dataset, split into train, validation, and test sets, and optionally standardize labels and normalize images.
     Args:
-        image_size: Tuple of (height, width)
-        batch_size: Number of images per batch
-        validation_split: Fraction of training data to use for validation
-    
+        image_size (tuple): Image size (height, width) for resizing.
+        batch_size (int): Number of images per batch.
+        validation_split (float): Fraction of training data to use for validation.
+        standardize_labels (bool): Whether to remap labels to unified order.
+        normalize (bool): Whether to normalize pixel values to [0, 1].
     Returns:
-        Tuple of (train_ds, val_ds, test_ds)
+        Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]: (train_ds, val_ds, test_ds)
     """
     fer_2013_path = _download_dataset(FER_2013_DATASET)
     test_path = fer_2013_path/"test"
@@ -156,6 +169,44 @@ def get_fer_2013_dataset(
         test_ds = _normalize_images(test_ds)
     return train_ds, val_ds, test_ds
 
+def get_combined_datasets(
+    image_size=(128,128),
+    batch_size=32,
+    validation_split=0.15,
+    standardize_labels=True,
+    normalize=True
+):
+    """
+    Combine RAF-DB and FER-2013 datasets into unified train, validation, and test sets.
+    Args:
+        image_size (tuple): Image size (height, width) for resizing.
+        batch_size (int): Number of images per batch.
+        validation_split (float): Fraction of training data to use for validation.
+        standardize_labels (bool): Whether to remap labels to unified order.
+        normalize (bool): Whether to normalize pixel values to [0, 1].
+    Returns:
+        Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]: (train_ds, val_ds, test_ds)
+    """
+    raf_train, raf_val, raf_test = get_raf_db_dataset(
+        image_size=image_size,
+        batch_size=batch_size,
+        validation_split=validation_split,
+        standardize_labels=standardize_labels,
+        normalize=normalize
+    )
+    fer_train, fer_val, fer_test = get_fer_2013_dataset(
+        image_size=image_size,
+        batch_size=batch_size,
+        validation_split=validation_split,
+        standardize_labels=standardize_labels,
+        normalize=normalize
+    )
+
+    train_ds = raf_train.concatenate(fer_train).shuffle(10000).prefetch(tf.data.AUTOTUNE)
+    val_ds = raf_val.concatenate(fer_val).shuffle(2000).prefetch(tf.data.AUTOTUNE)
+    test_ds = raf_test.concatenate(fer_test).prefetch(tf.data.AUTOTUNE)
+
+    return train_ds, val_ds, test_ds
+
 if __name__ == "__main__":
-    get_fer_2013_dataset()
-    get_raf_db_dataset()
+    get_combined_datasets()
