@@ -2,14 +2,15 @@ import kaggle
 import keras
 import tensorflow as tf
 from pathlib import Path
+from typing import Optional, Any
 
 DATA_ROOT = Path("../data")
 
 RAF_DB_DATASET = "shuvoalok/raf-db-dataset"
-RAF_DB_TO_UNIFIED: tf.Tensor = tf.constant([6, 2, 1, 3, 5, 0, 4])
+RAF_DB_TO_UNIFIED = tf.constant([6, 2, 1, 3, 5, 0, 4])
 
 FER_2013_DATASET = "msambare/fer2013"
-FER_2013_TO_UNIFIED: tf.Tensor = tf.constant([0, 1, 2, 3, 4, 5, 6])
+FER_2013_TO_UNIFIED = tf.constant([0, 1, 2, 3, 4, 5, 6])
 # 0 - angry, 1 - disgust, 2 - fear, 3 - happy, 4 - neutral, 5 - sad, 6 - surprise 
 
 def _download_dataset(dataset_url: str) -> Path:
@@ -35,7 +36,7 @@ def _download_dataset(dataset_url: str) -> Path:
         print("Failed to download dataset: ", e)
         raise
 
-def _standardize_labels(dataset: tf.data.Dataset, mapping: tf.Tensor) -> tf.data.Dataset:
+def _standardize_labels(dataset: tf.data.Dataset, mapping: Any) -> tf.data.Dataset:
     """
     Remap dataset labels using a mapping tensor to a unified label order.
     Args:
