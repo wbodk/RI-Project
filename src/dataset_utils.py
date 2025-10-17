@@ -207,7 +207,8 @@ def get_combined_datasets(
     val_ds = raf_val.concatenate(fer_val).shuffle(2000).prefetch(tf.data.AUTOTUNE)
     test_ds = raf_test.concatenate(fer_test).prefetch(tf.data.AUTOTUNE)
 
-    return train_ds, val_ds, test_ds
+    # Also return individual test splits so caller can evaluate per-source performance
+    return train_ds, val_ds, test_ds, raf_test, fer_test
 
 if __name__ == "__main__":
     get_combined_datasets()
