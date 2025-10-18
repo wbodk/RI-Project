@@ -64,6 +64,30 @@ def _normalize_images(dataset: tf.data.Dataset) -> tf.data.Dataset:
         return images, labels
     return dataset.map(_norm_fn, num_parallel_calls=tf.data.AUTOTUNE)
 
+def _augment_images(dataset: tf.data.Dataset) -> tf.data.Dataset:
+    """
+    Apply data augmentation to increase dataset diversity.
+    Includes random rotation, shift, zoom, and horizontal flip.
+    
+    Args:
+        dataset (tf.data.Dataset): Input dataset with (image, label) pairs.
+        
+    Returns:
+        tf.data.Dataset: Dataset with augmented images.
+    """
+    data_augmentation = keras.Sequential([
+        keras.layers.RandomRotation(0.15),
+        keras.layers.RandomTranslation(0.1, 0.1),
+        keras.layers.RandomZoom(0.15),
+        keras.layers.RandomFlip("horizontal"),
+    ])
+    
+    def _aug_fn(images, labels):
+        images = data_augmentation(images, training=True)
+        return images, labels
+    
+    return dataset.map(_aug_fn, num_parallel_calls=tf.data.AUTOTUNE)
+
 def get_raf_db_dataset(
     image_size=(128,128),
     batch_size=32,
@@ -206,6 +230,10 @@ def get_combined_datasets(
     train_ds = raf_train.concatenate(fer_train).shuffle(10000).prefetch(tf.data.AUTOTUNE)
     val_ds = raf_val.concatenate(fer_val).shuffle(2000).prefetch(tf.data.AUTOTUNE)
     test_ds = raf_test.concatenate(fer_test).prefetch(tf.data.AUTOTUNE)
+    
+    # Apply data augmentation to training set only
+    print("Applying data augmentation to training set...")
+    train_ds = _augment_images(train_ds)
 
     return train_ds, val_ds, test_ds
 
