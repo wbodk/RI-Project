@@ -66,7 +66,6 @@ def plot_class_distribution(dataset_dict, save_dir='../results'):
         
         bars = ax.bar(EMOTION_LABELS, counts, color='steelblue', alpha=0.8, edgecolor='black')
         
-        # Add value labels on bars
         for bar in bars:
             height = bar.get_height()
             ax.text(bar.get_x() + bar.get_width()/2., height,
@@ -77,7 +76,6 @@ def plot_class_distribution(dataset_dict, save_dir='../results'):
         ax.set_title(f'{dataset_name}', fontsize=12, fontweight='bold')
         ax.grid(axis='y', alpha=0.3)
         
-        # Rotate x labels
         plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
     
     plt.tight_layout()
@@ -123,7 +121,6 @@ def compare_datasets():
     print("Dataset Comparison Analysis")
     print("="*80)
     
-    # Load individual datasets
     print("\nLoading RAF-DB dataset...")
     raf_train, raf_val, raf_test = get_raf_db_dataset(batch_size=32)
     
@@ -133,19 +130,16 @@ def compare_datasets():
     print("Loading combined dataset...")
     combined_train, combined_val, combined_test = get_combined_datasets(batch_size=32)
     
-    # Count samples
     raf_counts = count_samples_per_class(raf_test, "RAF-DB Test Set")
     fer_counts = count_samples_per_class(fer_test, "FER-2013 Test Set")
     combined_counts = count_samples_per_class(combined_test, "Combined Test Set")
     
-    # Plot comparison
     plot_class_distribution({
         'RAF-DB': raf_counts,
         'FER-2013': fer_counts,
         'Combined': combined_counts
     })
     
-    # Analyze image statistics
     analyze_image_statistics(raf_test, num_batches=3, dataset_name="RAF-DB")
     analyze_image_statistics(fer_test, num_batches=3, dataset_name="FER-2013")
     analyze_image_statistics(combined_test, num_batches=3, dataset_name="Combined")
@@ -174,7 +168,6 @@ def visualize_sample_images(dataset, num_images=12, dataset_name="Dataset", save
         ax = axes[idx]
         
         img = images[idx].numpy()
-        # Denormalize if normalized
         if img.max() <= 1.0:
             img = (img * 255).astype(np.uint8)
         
@@ -187,7 +180,6 @@ def visualize_sample_images(dataset, num_images=12, dataset_name="Dataset", save
         ax.set_title(f'{label}', fontsize=11, fontweight='bold')
         ax.axis('off')
     
-    # Hide empty subplots
     for idx in range(len(images), len(axes)):
         axes[idx].axis('off')
     

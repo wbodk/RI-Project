@@ -14,7 +14,6 @@ def plot_training_history(history, save_dir='../results'):
     
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
     
-    # Accuracy plot
     ax1.plot(history.history['accuracy'], label='Train Accuracy', linewidth=2)
     ax1.plot(history.history['val_accuracy'], label='Validation Accuracy', linewidth=2)
     ax1.set_xlabel('Epoch', fontsize=12)
@@ -23,7 +22,6 @@ def plot_training_history(history, save_dir='../results'):
     ax1.legend(fontsize=10)
     ax1.grid(True, alpha=0.3)
     
-    # Loss plot
     ax2.plot(history.history['loss'], label='Train Loss', linewidth=2)
     ax2.plot(history.history['val_loss'], label='Validation Loss', linewidth=2)
     ax2.set_xlabel('Epoch', fontsize=12)
@@ -54,10 +52,8 @@ def plot_predictions_sample(model, dataset, num_samples=12, save_dir='../results
     
     Path(save_dir).mkdir(parents=True, exist_ok=True)
     
-    # Get a batch of images
     images, labels = next(iter(dataset.take(1)))
     
-    # Make predictions
     predictions = model.predict(images[:num_samples], verbose=0)
     
     # Plot
@@ -69,7 +65,6 @@ def plot_predictions_sample(model, dataset, num_samples=12, save_dir='../results
     )):
         ax = axes[idx]
         
-        # Denormalize image (assuming it was normalized to [0, 1])
         img = (image.numpy() * 255).astype(np.uint8)
         if img.shape[-1] == 3:
             ax.imshow(img)

@@ -55,7 +55,6 @@ def predict_emotion(model, image_path, return_all_probs=False):
     
     return result
 
-# Load face cascade classifier
 face_cascade = cv2.CascadeClassifier(
     cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
 )
@@ -71,7 +70,6 @@ def detect_and_predict_faces(model, image_path):
     Returns:
         list: List of predictions for each detected face
     """
-    # Load image
     image = cv2.imread(image_path)
     if image is None:
         print(f"❌ Could not load image: {image_path}")
@@ -79,7 +77,6 @@ def detect_and_predict_faces(model, image_path):
     
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
-    # Detect faces
     faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5, minSize=(30, 30))
     
     if len(faces) == 0:
@@ -92,14 +89,11 @@ def detect_and_predict_faces(model, image_path):
     results = []
     
     for i, (x, y, w, h) in enumerate(faces, 1):
-        # Crop face region
         face_roi = image[y:y+h, x:x+w]
         
-        # Save face temporarily
         temp_face_path = f"/tmp/face_{i}.jpg"
         cv2.imwrite(temp_face_path, face_roi)
         
-        # Predict emotion
         result = predict_emotion(model, temp_face_path, return_all_probs=True)
         results.append(result)
         
@@ -125,11 +119,9 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    # Load model
     print(f"Loading model from {args.model_path}...")
     model = load_model(args.model_path)
     
-    # Detect faces and predict
     print(f"\nProcessing image: {args.image}")
     results = detect_and_predict_faces(model, args.image)
     

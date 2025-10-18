@@ -9,7 +9,6 @@ import sys
 import argparse
 from pathlib import Path
 
-# Add src directory to Python path so imports work
 src_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(src_dir))
 
@@ -37,7 +36,6 @@ def evaluate_model():
     """Evaluate trained model."""
     from pathlib import Path
     
-    # Get models directory relative to this script
     script_dir = Path(__file__).parent.parent.parent  # Goes from src/cnn/ to root
     model_dir = script_dir / "models"
     if not model_dir.exists():
@@ -49,7 +47,6 @@ def evaluate_model():
         print("\n✗ No .keras model files found. Train a model first!")
         return
     
-    # Use final model if available, otherwise latest
     if (model_dir / "final_model.keras").exists():
         model_path = model_dir / "final_model.keras"
     else:
@@ -78,14 +75,12 @@ def predict_images():
     """Make predictions on images."""
     from pathlib import Path
     
-    # Get models directory relative to this script
     script_dir = Path(__file__).parent.parent.parent  # Goes from src/cnn/ to root
     model_dir = script_dir / "models"
     if not model_dir.exists() or not list(model_dir.glob("*.keras")):
         print("\n✗ No trained models found. Train a model first!")
         return
     
-    # Use final model if available
     if (model_dir / "final_model.keras").exists():
         model_path = model_dir / "final_model.keras"
     else:
@@ -120,7 +115,6 @@ def predict_images():
         
         print(f"\n✓ Processed {len(results)} images")
         
-        # Summary statistics
         from collections import Counter
         emotion_counts = Counter(r['predicted_emotion'] for r in results)
         print("\nSummary:")
@@ -164,7 +158,6 @@ def main():
     
     args = parser.parse_args()
     
-    # Handle direct command arguments
     if args.train:
         train_model()
         return
@@ -205,7 +198,6 @@ def main():
         run_tests()
         return
     
-    # Interactive menu
     print("\n" + "="*70)
     print("Welcome to Emotion Recognition CNN!")
     print("="*70)
