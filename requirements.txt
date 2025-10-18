@@ -83,7 +83,7 @@ six==1.17.0
 stack-data==0.6.3
 tensorboard==2.16.2
 tensorboard-data-server==0.7.2
-tensorflow==2.16.2
+# tensorflow==2.16.2
 tensorflow-datasets==4.9.9
 tensorflow-macos==2.16.2
 tensorflow-metadata==1.17.2

@@ -235,7 +235,8 @@ def get_combined_datasets(
     print("Applying data augmentation to training set...")
     train_ds = _augment_images(train_ds)
 
-    return train_ds, val_ds, test_ds
+    # Also return individual test splits so caller can evaluate per-source performance
+    return train_ds, val_ds, test_ds, raf_test, fer_test
 
 if __name__ == "__main__":
     get_combined_datasets()
