@@ -26,7 +26,9 @@ CONFIG = {
     'num_classes': 7,
     'validation_split': 0.15,
     'target_balance': 'max',  # strategy to balance: 'max' or 'median'
-    'unfreeze_top_n_layers': 50  # number of top ResNet layers to unfreeze for fine-tuning
+    'unfreeze_top_n_layers': 50,  # number of top ResNet layers to unfreeze for fine-tuning
+    'clipnorm': 1.0,  # gradient clipping norm for fine-tune optimizer
+    'model_dir': '../models'  # where to save checkpoints and final model
 }
 
 EMOTION_LABELS = ['Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise']
@@ -201,7 +203,7 @@ def train_resnet():
     )
 
     # Callbacks
-    callbacks, best_model_path = create_callbacks(model_dir='../models')
+    callbacks, best_model_path = create_callbacks(model_dir=CONFIG.get('model_dir', '../models'))
 
     # Train head
     print(f"\nTraining head for {CONFIG['epochs_head']} epochs with lr={CONFIG['lr_head']}...")
@@ -225,8 +227,16 @@ def train_resnet():
         for layer in base_model.layers:
             layer.trainable = True
 
-    # Re-compile with lower learning rate
-    optimizer_finetune = keras.optimizers.Adam(learning_rate=CONFIG['lr_finetune'])
+    # Additionally, keep all BatchNormalization layers non-trainable to stabilize fine-tuning
+    for layer in base_model.layers:
+        if isinstance(layer, tf.keras.layers.BatchNormalization):
+            layer.trainable = False
+
+    # Re-compile with lower learning rate and gradient clipping (clipnorm)
+    optimizer_finetune = keras.optimizers.Adam(
+        learning_rate=CONFIG['lr_finetune'],
+        clipnorm=CONFIG.get('clipnorm', 1.0)
+    )
     model.compile(
         optimizer=optimizer_finetune,
         loss='sparse_categorical_crossentropy',
@@ -299,8 +309,9 @@ def train_resnet():
     plt.close()
 
     # Save final model
-    final_model_path = Path('../models') / 'final_model_resnet.keras'
-    Path('../models').mkdir(parents=True, exist_ok=True)
+    # Save final model into configured model_dir
+    final_model_path = Path(CONFIG.get('model_dir', '../models')) / 'final_model_resnet.keras'
+    Path(CONFIG.get('model_dir', '../models')).mkdir(parents=True, exist_ok=True)
     model.save(str(final_model_path))
     print(f"\n\u2713 Final ResNet model saved to: {final_model_path}")
 
