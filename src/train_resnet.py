@@ -5,8 +5,8 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from pathlib import Path
 
-from src.dataset_utils import get_combined_datasets
-from src.train_cnn import create_callbacks
+from dataset_utils import get_combined_datasets
+from cnn.train_cnn import create_callbacks
 from sklearn.metrics import classification_report, confusion_matrix, f1_score, accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
