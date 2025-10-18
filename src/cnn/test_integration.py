@@ -7,7 +7,6 @@ import sys
 import os
 from pathlib import Path
 
-# Change to src directory
 os.chdir(Path(__file__).parent / 'src')
 
 def test_imports():
@@ -56,7 +55,6 @@ def test_dataset_utils():
         )
         print("  ✓ Dataset utilities imported")
         
-        # Check mappings
         assert len(RAF_DB_TO_UNIFIED) == 7, "RAF-DB mapping should have 7 classes"
         assert len(FER_2013_TO_UNIFIED) == 7, "FER-2013 mapping should have 7 classes"
         print("  ✓ Emotion mappings correct (7 classes)")
@@ -78,7 +76,6 @@ def test_model_building():
         compile_model(model)
         print("  ✓ Model compiled successfully")
         
-        # Check model structure
         params = model.count_params()
         print(f"  ✓ Total parameters: {params:,}")
         

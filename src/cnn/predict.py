@@ -80,7 +80,6 @@ def predict_batch(model, directory_path, return_all_probs=False):
     results = []
     dir_path = Path(directory_path)
     
-    # Find all image files
     image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp'}
     image_files = [f for f in dir_path.rglob('*') if f.suffix.lower() in image_extensions]
     

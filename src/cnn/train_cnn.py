@@ -12,7 +12,6 @@ from dataset_utils import get_combined_datasets
 
 tf.random.set_seed(42)
 
-# Configuration
 CONFIG = {
     'image_size': (128, 128),
     'batch_size': 32,
@@ -103,21 +102,18 @@ def calculate_class_weights(train_ds, num_classes=7):
     """
     print("\nCalculating class weights for balanced training...")
     
-    # Collect all labels from the dataset
     all_labels = []
     for images, labels in train_ds:
         all_labels.extend(labels.numpy())
     
     all_labels = np.array(all_labels)
     
-    # Calculate class weights
     class_weights = compute_class_weight(
         'balanced',
         classes=np.unique(all_labels),
         y=all_labels
     )
     
-    # Convert to dictionary format
     class_weight_dict = {i: weight for i, weight in enumerate(class_weights)}
     
     print("✓ Class weights calculated:")
@@ -181,7 +177,6 @@ def train_cnn():
     print("Emotion Recognition CNN - Training Script")
     print("=" * 80)
     
-    # Load combined datasets
     print("\nLoading combined datasets (RAF-DB + FER-2013)...")
     train_ds, val_ds, test_ds = get_combined_datasets(
         image_size=CONFIG['image_size'],
@@ -192,7 +187,6 @@ def train_cnn():
     )
     print("✓ Datasets loaded successfully!")
     
-    # Build model
     print("\nBuilding CNN model...")
     model = build_cnn_model(
         input_shape=(*CONFIG['image_size'], 3),
@@ -202,20 +196,16 @@ def train_cnn():
     print(f"\nModel Summary:")
     model.summary()
     
-    # Compile model
     print("\nCompiling model...")
     compile_model(model, learning_rate=CONFIG['learning_rate'])
     print("✓ Model compiled!")
     
-    # Create callbacks
     print("\nSetting up training callbacks...")
     callbacks, best_model_path = create_callbacks()
     print(f"✓ Best model will be saved to: {best_model_path}")
     
-    # Calculate class weights for balanced training
     class_weight_dict = calculate_class_weights(train_ds, CONFIG['num_classes'])
     
-    # Train model
     print("\n" + "=" * 80)
     print("Starting training with class balancing...")
     print("=" * 80 + "\n")
@@ -229,25 +219,26 @@ def train_cnn():
         verbose=1
     )
     
-    # Evaluate on test set
+    print("\nLoading best model from checkpoint...")
+    best_model = keras.models.load_model(best_model_path)
+    print(f"✓ Best model loaded from: {best_model_path}")
+    
     print("\n" + "=" * 80)
-    print("Evaluating on test set...")
+    print("Evaluating best model on test set...")
     print("=" * 80 + "\n")
     
-    test_loss, test_accuracy = model.evaluate(test_ds, verbose=1)
+    test_loss, test_accuracy = best_model.evaluate(test_ds, verbose=1)
     print(f"\n✓ Test Accuracy: {test_accuracy:.4f}")
     print(f"✓ Test Loss: {test_loss:.4f}")
     
-    # Save final model
     final_model_path = Path("../models") / "final_model.keras"
     Path("../models").mkdir(parents=True, exist_ok=True)
-    model.save(str(final_model_path))
+    best_model.save(str(final_model_path))
     print(f"\n✓ Final model saved to: {final_model_path}")
     
     return model, history
 
 if __name__ == "__main__":
-    # Change to src directory if not already there
     if not os.path.exists("dataset_utils.py"):
         os.chdir(Path(__file__).parent)
     

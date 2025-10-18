@@ -19,11 +19,9 @@ def evaluate_model_comprehensive(model_path, test_dataset, save_dir='../results'
     """
     Path(save_dir).mkdir(parents=True, exist_ok=True)
     
-    # Load model
     print("Loading model...")
     model = keras.models.load_model(model_path)
     
-    # Get all predictions and true labels
     print("Making predictions on test set...")
     all_predictions = []
     all_true_labels = []
@@ -37,11 +35,9 @@ def evaluate_model_comprehensive(model_path, test_dataset, save_dir='../results'
     all_predictions = np.array(all_predictions)
     all_true_labels = np.array(all_true_labels)
     
-    # Calculate accuracy
     accuracy = accuracy_score(all_true_labels, all_predictions)
     print(f"\n✓ Overall Accuracy: {accuracy:.4f}")
     
-    # Classification report
     print("\n" + "="*80)
     print("Classification Report:")
     print("="*80)
@@ -51,10 +47,8 @@ def evaluate_model_comprehensive(model_path, test_dataset, save_dir='../results'
         digits=4
     ))
     
-    # Confusion matrix
     cm = confusion_matrix(all_true_labels, all_predictions)
     
-    # Plot confusion matrix
     plt.figure(figsize=(10, 8))
     sns.heatmap(
         cm, annot=True, fmt='d', cmap='Blues',
@@ -85,7 +79,6 @@ def plot_per_class_metrics(true_labels, pred_labels, save_dir='../results'):
     """
     Path(save_dir).mkdir(parents=True, exist_ok=True)
     
-    # Calculate per-class accuracy
     per_class_acc = []
     for class_idx in range(len(EMOTION_LABELS)):
         mask = true_labels == class_idx
@@ -95,11 +88,8 @@ def plot_per_class_metrics(true_labels, pred_labels, save_dir='../results'):
         else:
             per_class_acc.append(0)
     
-    # Plot
     fig, ax = plt.subplots(figsize=(10, 6))
     bars = ax.bar(EMOTION_LABELS, per_class_acc, color='steelblue', alpha=0.8, edgecolor='black')
-    
-    # Add value labels on bars
     for bar in bars:
         height = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2., height,
